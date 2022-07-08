@@ -217,7 +217,7 @@ function loadBasic(sceneGraph) {
             cuby.name = (x/2 + 0.25).toString(10) + ":" + (z/2 + 0.25).toString(10);
             cuby.castShadow = true;
             cuby.receiveShadow = true;
-            board.add(cuby);
+            sceneGraph.add(cuby);
         }
     }
 
@@ -575,6 +575,14 @@ function moveFrontLeftUp(piece){
 function invalidPlay(){
     console.log("invalid play");
     const squary = sceneElements.sceneGraph.getObjectByName("-0.25:0.75");
+
+    
+    // var lightMM = new THREE.MeshPhongMaterial({ color: 'rgb(0,160,20)' });
+    // var cubeGeo = new THREE.BoxGeometry(0.5, 0.05,0.5);
+    // var cuby = new THREE.Mesh(cubeGeo, lightMM);
+    // cuby.position.y=0.30;
+    // sceneElements.sceneGraph.add(cuby);
+
     squary.material.color.set('rgb(249, 10, 9 )');
     setTimeout(function(){
         squary.material.color.set('rgb(20,20,20)');
@@ -618,3 +626,5 @@ function computeFrame(time) {
 //textures
 //reflections
 // illumination and shading
+// background
+// user escolhe o speed do salto

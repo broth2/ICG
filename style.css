@@ -1,4 +1,18 @@
-
 body { 
 	margin: 0px;
 }
+
+header {
+    justify-content: center;
+    position: absolute;
+	top: 10px;
+	width: 100%;
+	text-align: center;
+	z-index: 100;
+	display:block;
+    font-family: 'Courier New', Courier, monospace;
+    height: 100px;
+    line-height: 50px;
+}
+
+

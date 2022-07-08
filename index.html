@@ -1,28 +1,65 @@
 <!DOCTYPE html>
 
 <html lang="en">
-<!--
-
-		Example adapted for Daniel Rohmer tutorial
-
-		https://imagecomputing.net/damien.rohmer/teaching/2019_2020/semester_1/MPRI_2-39/practice/threejs/content/000_threejs_tutorial/index.html
-
-		J. Madeira - April 2021
-
--->
 
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
-	<title> 3D scene </title>
-
+	<title> Nuno Fahla's Chessboard </title>
 
 	<link rel="stylesheet" href="style.css">
-	
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css" rel="stylesheet">
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    
 </head>
 
 <body>
+	<header>
+		<div class="container"> 
+			<div class="row">
+				<div class="col-sm-2 ml-auto">
+					<p class="text-center"></span></p>
+				</div>
+				<div class="col-sm-2 ml-auto">
+					<p class="text-center"></p>
+				</div>
+				<div class="col-sm-4 justify-content-center">
+					<h1 class="text-center"></h1>
+				</div>
+				<div class="col-sm-2 mx-auto">
+					<p class="text-center"></p>
+				</div>
+				<div class="col-sm-2 tutorial">
+					<button type="button" id="tutorial" class="btn btn-secondary float-right" data-bs-toggle="modal" data-bs-target="#tutorialModal">
+						Tutorial
+					</button>
+				</div>
+			</div>
+		</div>
+	</header> 
+
+	<div class="modal fade" id="tutorialModal" tabindex="-1" aria-labelledby="tutorialModalLabel" aria-hidden="true">
+		<div class="modal-dialog tutorialModal">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="tutorialModalLabel">Chessboard</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body" style="text-align:center">
+					<p>Numbers 1 through 8 decide which move your knight makes, no wrong moves allowed though!</p>
+					<img src="./lib/board.jpg" height="300" alt="board_help">
+					<p>Think you can get to the black knight?</p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
 	<script type="module" src="scene.js" defer></script>
 	<div id="Tag3DScene"> </div>
 </body>
