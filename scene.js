@@ -25,12 +25,17 @@ var vectorZ = directionZ.clone().multiplyScalar(-0.06,0.05,-0.06);
 
 // load gui
 var controls = new function () {
+    this.lightSpeed = 0;
     this.jumpHeight = 0.5;
+    this.intensity = 0.2;
 };
 var gui = new dat.GUI();
+gui.add(controls, 'lightSpeed', 0, 0.5)
+gui.add(controls, 'intensity', 0,2);
 gui.add(controls, 'jumpHeight', 0,3);
 
 var jmp_hght=controls.jumpHeight;
+var intst = controls.intensity;
 
 
 
@@ -83,15 +88,16 @@ function initEmptyScene(sceneElements) {
     // ************************** //
     // Add ambient light
     // ************************** //
-    const ambientLight = new THREE.AmbientLight('rgb(255, 255, 255)', 2);
-    //sceneElements.sceneGraph.add(ambientLight);
+    const ambientLight = new THREE.AmbientLight('rgb(255, 255, 255)', 0.8);
+    sceneElements.sceneGraph.add(ambientLight);
 
     // ***************************** //
     // Add spotlight (with shadows)
     // ***************************** //
-    const spotLight = new THREE.SpotLight('rgb(255, 255, 255)', 10);
-    spotLight.position.set(0, 100, 4);
-    sceneElements.sceneGraph.add(spotLight);
+    const spotLight = new THREE.SpotLight('rgb(255, 255, 255)', 1);
+    var lights = new THREE.Group();
+    spotLight.position.set(4, 4, 4);
+    lights.add(spotLight);
 
     // Setup shadow properties for the spotlight
     spotLight.castShadow = true;
@@ -101,6 +107,16 @@ function initEmptyScene(sceneElements) {
     // Give a name to the spot light
     spotLight.name = "light";
 
+    const geometry13 = new THREE.SphereGeometry( 0.1, 20, 20 );
+    const material13 = new THREE.MeshBasicMaterial( { color: 'rgb(235, 161, 52)' } );
+    const sphere = new THREE.Mesh( geometry13, material13 );
+    sphere.position.set(4,4,4);
+    //sphere.position.y = (10 * Math.abs(Math.sin(1)));
+    sphere.name = "sun";
+    lights.add( sphere );
+    lights.name="lights";
+    sceneElements.sceneGraph.add(lights);
+
 
     // *********************************** //
     // Create renderer (with shadow map)
@@ -108,6 +124,7 @@ function initEmptyScene(sceneElements) {
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     sceneElements.renderer = renderer;
     renderer.setPixelRatio(window.devicePixelRatio);
+    // ambient color
     renderer.setClearColor('rgb(120, 120, 120)', 1.0);
     renderer.setSize(width, height);
 
@@ -197,11 +214,25 @@ function loadBasic(sceneGraph) {
     gridHelper.position.y=-0.01;
     sceneGraph.add( gridHelper );
 
+    
+
+    var img = "./lib/dark_wood.png";
+    var texture = new THREE.ImageUtils.loadTexture(img);
+    var darkM = new THREE.MeshPhongMaterial()
+    darkM.map=texture;
+    darkM.map.repeat.set(1,1);
+
+    var img2 = "./lib/ivory.jpeg";
+    var texture2 = new THREE.ImageUtils.loadTexture(img2);
+    var lightM = new THREE.MeshPhongMaterial()
+    lightM.map=texture2;
+    lightM.map.repeat.set(1,1);
+
     // chess
 
     var cubeGeo = new THREE.BoxGeometry(0.5, 0.05,0.5);
-    var lightM = new THREE.MeshPhongMaterial({ color: 'rgb(20,20,20)' });
-    var darkM = new THREE.MeshPhongMaterial({color: 'rgb(0,0,0)'});
+    //var lightM = new THREE.MeshPhongMaterial({ color: 'rgb(20,20,20)' });
+    //var darkM = new THREE.MeshPhongMaterial({color: 'rgb(0,0,0)'});
     var board = new THREE.Group();
 
     for (let x =-4; x<4; x++){
@@ -245,7 +276,7 @@ function loadKnights(sceneGraph){
 
     loader.load('./knight/scene_white.gltf',(gltfScene) => {
         const whiteKnight = gltfScene.scene;
-        whiteKnight.position.set(1.25, 0.025, 1.75);
+        whiteKnight.position.set(-1.25, 0.025, 1.75);
         whiteKnight.scale.set(6,6,6);
         whiteKnight.name = "white";
 
@@ -253,7 +284,7 @@ function loadKnights(sceneGraph){
         gltfScene.scene.receiveShadow = true;
 
         sceneGraph.add(whiteKnight);
-        quickReset(whiteKnight);
+        //quickReset(whiteKnight);
         sceneElements.whiteK =  whiteKnight;
 
     });
@@ -344,7 +375,14 @@ function trial11(){
 }
 
 function quickReset(piece){
-    piece.position.set(0.25,0.025,-0.25);
+    const possibilities = [-1.75, -1.25, -0.75, -0.25, 0, 0.25, 0.75, 1.25, 1.75];
+    const possibleX = possibilities[Math.floor(Math.random() * possibilities.length)];
+    const possibleZ = possibilities[Math.floor(Math.random() * possibilities.length)];
+    if((possibleX==1.25 && possibleZ==-1.75) || (possibleX==0 && possibleZ==0)){
+        piece.position.set(-1.25,0.025,1.75);
+    }else{
+        piece.position.set(possibleX,0.025,possibleZ);
+    }
 }
 
 function moveFrontRightUp(piece){
@@ -576,17 +614,18 @@ function moveFrontLeftUp(piece){
 
 function invalidPlay(){
     console.log("invalid play");
-    const squary = sceneElements.sceneGraph.getObjectByName("board").children[0];
-    var squary1 = sceneElements.sceneGraph.getObjectByName(getKnightPos());
+    var all_squares = sceneElements.sceneGraph.getObjectByName("board").children[0];
+    var curr_pos = sceneElements.sceneGraph.getObjectByName(getKnightPos());
 
-    var materialRed = new THREE.MeshPhongMaterial({ color: 'rgb(255,0,0)'});
-    var clr = (squary1.material);
-    squary1.material = materialRed;
-    squary.material.color.set('rgb(249, 10, 9 )');
+    var materialRed = new THREE.MeshPhongMaterial({ color: 'rgb(235, 70, 52)'});
+    var clr = (curr_pos.material);
+
+    curr_pos.material = materialRed;
+    all_squares.material.color.set('rgb(217, 63, 28)');
     
     setTimeout(function(){
-        squary.material.color.set('rgb(20,20,20)');
-        squary1.material=clr;
+        all_squares.material.color.set(0xffffff);
+        curr_pos.material=clr;
     }, 1000);
 }
 
@@ -597,24 +636,22 @@ function getKnightPos(){
 function computeFrame(time) {
 
     jmp_hght=(controls.jumpHeight);
+    sceneElements.sceneGraph.getObjectByName("light").intensity=controls.intensity;
 
-    const squary = sceneElements.sceneGraph.getObjectByName("-0.25:0.75");
-    var firstBB = new THREE.Box3().setFromObject(squary);
-    //squary.position.y=0.025;
+    sceneElements.sceneGraph.getObjectByName("lights").rotation.y += controls.lightSpeed;
+    //console.log(sceneElements.sceneGraph.getObjectByName("sun").rotation.y);
+
+    
     var secondBB = new THREE.Box3().setFromObject(sceneElements.whiteK);
     var thirdBB = new THREE.Box3().setFromObject(sceneElements.blackK);
-    var collision = firstBB.intersectsBox(secondBB);
     var winCondition = secondBB.intersectsBox(thirdBB);
-    if (collision){
-        sceneElements.sceneGraph.remove(sceneElements.sceneGraph.children[3].remove(children[0]));
-        //squary.position.y=0.025;
-        //squary.material.color.setHex( 0xdb4607 );
-        console.log("collided");
-    }
+    
     if(winCondition){
         sceneElements.sceneGraph.remove(sceneElements.blackK);
-        //win()
-        //reset()
+        setTimeout(function(){
+            quickReset(sceneElements.whiteK);
+            sceneElements.sceneGraph.add(sceneElements.blackK);
+        }, 2000);
     }
 
 
@@ -628,10 +665,8 @@ function computeFrame(time) {
     requestAnimationFrame(computeFrame);
 }
 
-//TO DO
-//-win()
-//reset()
-//textures
-//reflections
+// TO DO
+// textures
+// reflections
 // illumination and shading
 // background
