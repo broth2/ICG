@@ -15,4 +15,7 @@ header {
     line-height: 50px;
 }
 
-
+.tutorial {
+    position: absolute;
+	text-align: left;
+}

@@ -23,6 +23,15 @@ var directionZ = new THREE.Vector3(0.1, 0, 0.2);
 var vectorX = directionX.clone().multiplyScalar(-0.06,0.05,-0.06);
 var vectorZ = directionZ.clone().multiplyScalar(-0.06,0.05,-0.06);
 
+// load gui
+var controls = new function () {
+    this.jumpHeight = 0.5;
+};
+var gui = new dat.GUI();
+gui.add(controls, 'jumpHeight', 0,3);
+
+var jmp_hght=controls.jumpHeight;
+
 
 
 // main funcs
@@ -156,23 +165,13 @@ function onDocumentKeyDown(event) {
     }
 }
 
-// function onDocumentKeyUp(event) {
-//     switch (event.keyCode) {
-//         case 68: //d
-//             keyD = false;
-//             break;
-//         case 83: //s
-//             keyS = false;
-//             break;
-//         case 65: //a
-//             keyA = false;
-//             break;
-//         case 87: //w
-//             keyW = false;
-//             break;
-//     }
-// }
-
+//come back to this later, takes time to implement and test
+function changeSpeed(ammount){
+    directionX = new THREE.Vector3(0.2, 0, 0.2/2);
+    directionZ = new THREE.Vector3(0.2/2, 0, 0.2);
+    vectorX = directionX.clone().multiplyScalar(-0.06,0.05,-0.06);
+    vectorZ = directionZ.clone().multiplyScalar(-0.06,0.05,-0.06);
+}
 
 
 // load basic models
@@ -217,13 +216,13 @@ function loadBasic(sceneGraph) {
             cuby.name = (x/2 + 0.25).toString(10) + ":" + (z/2 + 0.25).toString(10);
             cuby.castShadow = true;
             cuby.receiveShadow = true;
-            sceneGraph.add(cuby);
+            board.add(cuby);
         }
     }
-
+    board.name = "board";
     sceneGraph.add(board);
     console.log(sceneElements.sceneGraph.children[3].children[0]);
-    loadKnights(sceneGraph)
+    loadKnights(sceneGraph);
     
 }
 
@@ -274,6 +273,9 @@ function loadKnights(sceneGraph){
         console.log("--" + blackKnight);
     });
 }
+
+
+
 // ******************************************************************************************************** //
 // functions to handle chess piece movement
 // ******************************************************************************************************** //
@@ -364,7 +366,7 @@ function moveFrontRightUp(piece){
     if(piece.position.z > expectedZ || piece.position.x < expectedX){
         piece.position.x -= vectorZ.x;
         piece.position.z += vectorZ.z;
-        piece.position.y = 0.025 + (0.5 * Math.abs(Math.sin(step/26.8)));
+        piece.position.y = (0.025 + (jmp_hght * Math.abs(Math.sin(step/26.8))));
         return true;
     }
     piece.position.x=expectedX;
@@ -392,7 +394,7 @@ function moveFrontRightDown(piece){
     if(piece.position.z > expectedZ || piece.position.x < expectedX){
         piece.position.x -= vectorX.x;
         piece.position.z += vectorX.z;
-        piece.position.y = 0.025 + (0.5 * Math.abs(Math.sin(step/26.8)));
+        piece.position.y = 0.025 + (jmp_hght * Math.abs(Math.sin(step/26.8)));
         return true;
     }
     piece.position.x=expectedX;
@@ -420,7 +422,7 @@ function moveBackRightUp(piece){
     if(piece.position.z < expectedZ || piece.position.x < expectedX){
         piece.position.x -= vectorX.x;
         piece.position.z -= vectorX.z;
-        piece.position.y = 0.025 + (0.5 * Math.abs(Math.sin(step/26.8)));
+        piece.position.y = 0.025 + (jmp_hght * Math.abs(Math.sin(step/26.8)));
         return true;
     }
     piece.position.x=expectedX;
@@ -448,7 +450,7 @@ function moveBackRightDown(piece){
     if(piece.position.z < expectedZ || piece.position.x < expectedX){
         piece.position.x -= vectorZ.x;
         piece.position.z -= vectorZ.z;
-        piece.position.y = 0.025 + (0.5 * Math.abs(Math.sin(step/26.8)));
+        piece.position.y = 0.025 + (jmp_hght * Math.abs(Math.sin(step/26.8)));
         return true;
     }
     piece.position.x=expectedX;
@@ -476,7 +478,7 @@ function moveBackLeftDown(piece){
     if(piece.position.z < expectedZ || piece.position.x > expectedX){
         piece.position.x += vectorZ.x;
         piece.position.z -= vectorZ.z;
-        piece.position.y = 0.025 + (0.5 * Math.abs(Math.sin(step/26.8)));
+        piece.position.y = 0.025 + (jmp_hght * Math.abs(Math.sin(step/26.8)));
         return true;
     }
     piece.position.x=expectedX;
@@ -504,7 +506,7 @@ function moveBackLeftUp(piece){
     if(piece.position.z < expectedZ || piece.position.x > expectedX){
         piece.position.x += vectorX.x;
         piece.position.z -= vectorX.z;
-        piece.position.y = 0.025 + (0.5 * Math.abs(Math.sin(step/26.8)));
+        piece.position.y = 0.025 + (jmp_hght * Math.abs(Math.sin(step/26.8)));
         return true;
     }
     piece.position.x=expectedX;
@@ -533,7 +535,7 @@ function moveFrontLeftDown(piece){
     if(piece.position.z > expectedZ || piece.position.x > expectedX){
         piece.position.x += vectorX.x;
         piece.position.z += vectorX.z;
-        piece.position.y = 0.025 + (0.5 * Math.abs(Math.sin(step/26.8)));
+        piece.position.y = 0.025 + (jmp_hght * Math.abs(Math.sin(step/26.8)));
         return true;
     }
     piece.position.x=expectedX;
@@ -562,7 +564,7 @@ function moveFrontLeftUp(piece){
     if(piece.position.z > expectedZ || piece.position.x > expectedX){
         piece.position.x += vectorZ.x;
         piece.position.z += vectorZ.z;
-        piece.position.y = 0.025 + (0.5 * Math.abs(Math.sin(step/26.8)));
+        piece.position.y = 0.025 + (jmp_hght * Math.abs(Math.sin(step/26.8)));
         return true;
     }
     piece.position.x=expectedX;
@@ -574,22 +576,27 @@ function moveFrontLeftUp(piece){
 
 function invalidPlay(){
     console.log("invalid play");
-    const squary = sceneElements.sceneGraph.getObjectByName("-0.25:0.75");
+    const squary = sceneElements.sceneGraph.getObjectByName("board").children[0];
+    var squary1 = sceneElements.sceneGraph.getObjectByName(getKnightPos());
 
-    
-    // var lightMM = new THREE.MeshPhongMaterial({ color: 'rgb(0,160,20)' });
-    // var cubeGeo = new THREE.BoxGeometry(0.5, 0.05,0.5);
-    // var cuby = new THREE.Mesh(cubeGeo, lightMM);
-    // cuby.position.y=0.30;
-    // sceneElements.sceneGraph.add(cuby);
-
+    var materialRed = new THREE.MeshPhongMaterial({ color: 'rgb(255,0,0)'});
+    var clr = (squary1.material);
+    squary1.material = materialRed;
     squary.material.color.set('rgb(249, 10, 9 )');
+    
     setTimeout(function(){
         squary.material.color.set('rgb(20,20,20)');
+        squary1.material=clr;
     }, 1000);
 }
 
+function getKnightPos(){
+    return sceneElements.whiteK.position.x.toString(10) + ":" + sceneElements.whiteK.position.z.toString(10)
+}
+
 function computeFrame(time) {
+
+    jmp_hght=(controls.jumpHeight);
 
     const squary = sceneElements.sceneGraph.getObjectByName("-0.25:0.75");
     var firstBB = new THREE.Box3().setFromObject(squary);
@@ -610,6 +617,7 @@ function computeFrame(time) {
         //reset()
     }
 
+
     // Rendering
     render(sceneElements);
 
@@ -627,4 +635,3 @@ function computeFrame(time) {
 //reflections
 // illumination and shading
 // background
-// user escolhe o speed do salto
