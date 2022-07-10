@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.skypack.dev/three@0.129.0/build/three.module
 import { OrbitControls } from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/loaders/GLTFLoader.js';
 import { RGBELoader } from './lib/RGBELoader.js';
+import { Reflector } from './lib/Reflector.js';
 
 // To store the scene graph, and elements usefull to rendering the scene
 const sceneElements = {
@@ -34,7 +35,7 @@ var controls = new function () {
 
     this.background = function (e){
         if(e!="prototype"){
-
+            sceneElements.sceneGraph.getObjectByName("mirror").translateZ(0.04);
             new RGBELoader()
             .load("./lib/"+e+".hdr", function (texture){
                 texture.mapping = THREE.EquirectangularReflectionMapping;
@@ -58,6 +59,8 @@ var controls = new function () {
         }else{
 
             if (!already_loaded){
+                sceneElements.sceneGraph.getObjectByName("mirror").translateZ(-0.04);
+                
                 sceneElements.sceneGraph.background=null;
 
                 var axes = new THREE.AxesHelper(3.5);
@@ -79,6 +82,8 @@ var controls = new function () {
 
     }
 };
+
+
 var gui = new dat.GUI();
 gui.add(controls, 'lightSpeed', 0, 0.5)
 gui.add(controls, 'intensity', 0,2);
@@ -99,7 +104,6 @@ window.addEventListener('resize', resizeWindow);
 
 //To keep track of the keyboard
 document.addEventListener('keydown', onDocumentKeyDown, false);
-//document.addEventListener('keyup', onDocumentKeyUp, false);
 
 
 // Update render image size and camera aspect when the window is resized
@@ -134,19 +138,11 @@ function initEmptyScene(sceneElements) {
 
     
 
-    // ************************** //
-    // Illumination
-    // ************************** //
-
-    // ************************** //
-    // Add ambient light
-    // ************************** //
+    // ambient light
     const ambientLight = new THREE.AmbientLight('rgb(255, 255, 255)', 0.8);
     sceneElements.sceneGraph.add(ambientLight);
 
-    // ***************************** //
-    // Add light (with shadows)
-    // ***************************** //
+    // lights and suns
     var spotLight = new THREE.SpotLight('rgb(255, 255, 255)', 1);
     var lights = new THREE.Group();
     spotLight = new THREE.PointLight('rgb(246, 200, 9 )');
@@ -211,9 +207,7 @@ function initEmptyScene(sceneElements) {
     //later group light and sphere
 
 
-    // *********************************** //
-    // Create renderer (with shadow map)
-    // *********************************** //
+    // rendered (with shadow map)
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     sceneElements.renderer = renderer;
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -225,16 +219,12 @@ function initEmptyScene(sceneElements) {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    // ************************** //
-    // Control for the camera
-    // ************************** //
+    // camera control
     sceneElements.control = new OrbitControls(camera, renderer.domElement);
     sceneElements.control.screenSpacePanning = true;
 
 
-    // **************************************** //
-    // Add the rendered image in the HTML DOM
-    // **************************************** //
+    // 
     const htmlElement = document.querySelector("#Tag3DScene");
     htmlElement.appendChild(renderer.domElement);
 
@@ -287,26 +277,12 @@ function changeSpeed(ammount){
 // load basic models
 function loadBasic(sceneGraph) {
 
-    // ground plane
-    // const planeGeometry = new THREE.PlaneGeometry(6, 6);
-    // const planeMaterial = new THREE.MeshPhongMaterial({ color: 'rgb(200, 200, 200)', side: THREE.DoubleSide });
-    // const planeObject = new THREE.Mesh(planeGeometry, planeMaterial);
-    // planeObject.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / 2);
-    // planeObject.receiveShadow = true;
-    //sceneGraph.add(planeObject);
 
-    // var floorTex = THREE.ImageUtils.loadTexture("./lib/tabletop.jpg");
-    // var plane = new THREE.Mesh(new THREE.BoxGeometry(7, 7, 0.01, 30), new THREE.MeshPhongMaterial({
-    //     color: 0xffffff,
-    //     map: floorTex
-    // }));
-    // plane.position.y = -0.06;
-    // plane.rotation.x = -0.5 * Math.PI;
-    // plane.name="plane";
-    // sceneGraph.add(plane);
+    loadMirror(sceneGraph);
 
     // the coordinate axes
     if (!already_loaded){
+    sceneElements.sceneGraph.getObjectByName("mirror").translateZ(-0.04);
     var axes = new THREE.AxesHelper(3.5);
     axes.name="axes";
     sceneGraph.add(axes);
@@ -361,15 +337,47 @@ function loadBasic(sceneGraph) {
     loadKnights(sceneGraph);
 
     createBoardBorder(sceneGraph);
+}
+
+function loadMirror(sceneGraph){
+
+
+    var mirror = new THREE.Group();
+    const mirrorGeometry = new THREE.PlaneGeometry(4, 4);
+    var mirrorObject = new Reflector(mirrorGeometry, {
+        clipBias: 0.003,
+        textureWidth: window.innerWidth * window.devicePixelRatio,
+        textureHeight: window.innerHeight * window.devicePixelRatio,
+        color: 0x777777,
+    });
+    mirrorObject.translateY(0.5);
+    mirrorObject.translateZ(0.03);
+    mirror.add(mirrorObject);
+
+    const borderGeometry = new THREE.PlaneGeometry(4.1, 4.1);
+    const borderMaterial1 = new THREE.MeshBasicMaterial({
+        color: 0xe28743,
+        side: THREE.DoubleSide,
+    });
+    var border = new THREE.Mesh(borderGeometry, borderMaterial1);
+    
+    border.translateY(0.5);
+    border.translateZ(0.009);
+    border.receiveShadow = true;
+    border.castShadow = true;
+    mirror.add(border);
+    mirror.rotation.x=Math.PI/2;
+    mirror.position.y=-0.06;
+    mirror.position.x=0;
+    mirror.position.z=0;
+    mirror.translateY(-0.5);
+    mirror.name="mirror";
+    sceneGraph.add(mirror);
     
 }
 
 function createBoardBorder(sceneGraph){
-    //var texture = THREE.ImageUtils.loadTexture("./lib/stone.jpg");
-    // var matty = new THREE.MeshPhongMaterial();//{color: 'rgb(123, 201, 18)'});
-    //matty.map = texture;
     var geommy = new THREE.BoxGeometry(0.5, 0.05,4);
-    //geommy.computeVertexNormals();
 
     if ("./lib/stone_bump.png") {
         var texture = THREE.ImageUtils.loadTexture("./lib/granite.png");
@@ -392,7 +400,6 @@ function createBoardBorder(sceneGraph){
     var cubs2 = new THREE.Mesh(geommy2,matty)
     cubs2.rotation.y=Math.PI/2;
     cubs2.translateX(2.25);
-    //cubs2.translateZ(-2.25);
     sceneGraph.add(cubs2);
 
     var cubs3 = cubs2.clone();
@@ -407,14 +414,11 @@ function createBoardBorder(sceneGraph){
 
 function loadKnights(sceneGraph){
     //load knight
-    //pegar nas cores da 169 e meter abaixo
 
     const loadingManager = new THREE.LoadingManager()   
        
     loadingManager.onLoad = () => {	
         console.log(sceneElements.blackK.name + " and " + sceneElements.whiteK.name + " ready!");
-        // sceneElements.whiteK.position.z +=(-0.5);
-        // sceneElements.whiteK.position.x -=(-0.5);
         requestAnimationFrame(computeFrame);
     }
 
@@ -788,7 +792,6 @@ function computeFrame(time) {
     sceneElements.sceneGraph.getObjectByName("light4").intensity=controls.intensity;
 
     sceneElements.sceneGraph.getObjectByName("lights").rotation.y += controls.lightSpeed;
-    //console.log(sceneElements.sceneGraph.getObjectByName("sun").position);
     
     
     var secondBB = new THREE.Box3().setFromObject(sceneElements.whiteK);
@@ -815,6 +818,5 @@ function computeFrame(time) {
 }
 
 // TO DO
-// reflections
-// illumination and shading
 // fix cavalo preto desaparecer em saltos que nao o matam
+// later
