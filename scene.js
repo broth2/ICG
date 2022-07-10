@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.skypack.dev/three@0.129.0/build/three.module.js';
 import { OrbitControls } from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/loaders/GLTFLoader.js';
+import { RGBELoader } from './lib/RGBELoader.js';
 
 // To store the scene graph, and elements usefull to rendering the scene
 const sceneElements = {
@@ -28,18 +29,65 @@ var controls = new function () {
     this.lightSpeed = 0;
     this.jumpHeight = 0.5;
     this.intensity = 0.2;
+    this.background = "prototype";
+
+    this.background = function (e){
+        if(e!="prototype"){
+
+            new RGBELoader()
+            .load("./lib/"+e+".hdr", function (texture){
+                texture.mapping = THREE.EquirectangularReflectionMapping;
+                sceneElements.sceneGraph.background = texture;
+                sceneElements.sceneGraph.environment = texture;
+            });
+
+            var floorTex = THREE.ImageUtils.loadTexture("./lib/tabletop.jpg");
+            var plane = new THREE.Mesh(new THREE.BoxGeometry(7, 7, 0.01, 30), new THREE.MeshPhongMaterial({
+                color: 0xffffff,
+                map: floorTex
+            }));
+            plane.position.y = -0.06;
+            plane.rotation.x = -0.5 * Math.PI;
+            plane.name="plane";
+            sceneElements.sceneGraph.add(plane);
+
+            
+            sceneElements.sceneGraph.remove(sceneElements.sceneGraph.getObjectByName("axes"));
+            sceneElements.sceneGraph.remove(sceneElements.sceneGraph.getObjectByName("grid"));
+        }else{
+
+
+            sceneElements.sceneGraph.background=null;
+
+            var axes = new THREE.AxesHelper(2.5);
+            axes.name="axes";
+            sceneElements.sceneGraph.add(axes);
+        
+            // the grid
+            const size = 8;
+            const divisions = 16;
+            const gridHelper = new THREE.GridHelper( size, divisions );
+            gridHelper.position.y=-0.01;
+            gridHelper.name="grid";
+            sceneElements.sceneGraph.add( gridHelper );
+            
+            sceneElements.sceneGraph.remove(sceneElements.sceneGraph.getObjectByName("plane"));
+        }
+
+    }
 };
 var gui = new dat.GUI();
 gui.add(controls, 'lightSpeed', 0, 0.5)
 gui.add(controls, 'intensity', 0,2);
 gui.add(controls, 'jumpHeight', 0,3);
+gui.add(controls, "background", ['prototype', 'theater', 'pizzo']).onChange(controls.background);
 
 var jmp_hght=controls.jumpHeight;
 var intst = controls.intensity;
 
 
-
 // main funcs
+
 initEmptyScene(sceneElements);
 loadBasic(sceneElements.sceneGraph);
 
@@ -80,6 +128,8 @@ function initEmptyScene(sceneElements) {
     sceneElements.camera = camera;
     camera.position.set(0, 5, 5);
     camera.lookAt(0, 0, 0);
+
+    
 
     // ************************** //
     // Illumination
@@ -195,16 +245,26 @@ function changeSpeed(ammount){
 function loadBasic(sceneGraph) {
 
     // ground plane
-    const planeGeometry = new THREE.PlaneGeometry(6, 6);
-    const planeMaterial = new THREE.MeshPhongMaterial({ color: 'rgb(200, 200, 200)', side: THREE.DoubleSide });
-    const planeObject = new THREE.Mesh(planeGeometry, planeMaterial);
-    planeObject.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / 2);
-    planeObject.receiveShadow = true;
+    // const planeGeometry = new THREE.PlaneGeometry(6, 6);
+    // const planeMaterial = new THREE.MeshPhongMaterial({ color: 'rgb(200, 200, 200)', side: THREE.DoubleSide });
+    // const planeObject = new THREE.Mesh(planeGeometry, planeMaterial);
+    // planeObject.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / 2);
+    // planeObject.receiveShadow = true;
     //sceneGraph.add(planeObject);
 
+    // var floorTex = THREE.ImageUtils.loadTexture("./lib/tabletop.jpg");
+    // var plane = new THREE.Mesh(new THREE.BoxGeometry(7, 7, 0.01, 30), new THREE.MeshPhongMaterial({
+    //     color: 0xffffff,
+    //     map: floorTex
+    // }));
+    // plane.position.y = -0.06;
+    // plane.rotation.x = -0.5 * Math.PI;
+    // plane.name="plane";
+    // sceneGraph.add(plane);
 
     // the coordinate axes
     var axes = new THREE.AxesHelper(2.5);
+    axes.name="axes";
     sceneGraph.add(axes);
 
     // the grid
@@ -212,6 +272,7 @@ function loadBasic(sceneGraph) {
     const divisions = 16;
     const gridHelper = new THREE.GridHelper( size, divisions );
     gridHelper.position.y=-0.01;
+    gridHelper.name="grid";
     sceneGraph.add( gridHelper );
 
     
@@ -254,9 +315,50 @@ function loadBasic(sceneGraph) {
     sceneGraph.add(board);
     console.log(sceneElements.sceneGraph.children[3].children[0]);
     loadKnights(sceneGraph);
+
+    createBoardBorder(sceneGraph);
     
 }
 
+function createBoardBorder(sceneGraph){
+    //var texture = THREE.ImageUtils.loadTexture("./lib/stone.jpg");
+    // var matty = new THREE.MeshPhongMaterial();//{color: 'rgb(123, 201, 18)'});
+    //matty.map = texture;
+    var geommy = new THREE.BoxGeometry(0.5, 0.05,4);
+    //geommy.computeVertexNormals();
+
+    if ("./lib/stone_bump.png") {
+        var texture = THREE.ImageUtils.loadTexture("./lib/granite.png");
+        var normal_bump = THREE.ImageUtils.loadTexture("./lib/stone-bump.jpg");
+        var matty = new THREE.MeshPhongMaterial({color: 'rgb(255, 194, 153)'});
+        matty.map = texture;
+        matty.normalMap = normal_bump;
+        //matty.bumpScale =4;
+    }
+    matty.map.repeat.set(0.1,1);
+    
+    var cubs = new THREE.Mesh(geommy, matty);
+
+    cubs.material.normalScale.set(1.2, 1.2);
+    cubs.position.y=0;
+    cubs.position.x=2.25;
+    sceneGraph.add(cubs);
+
+    var geommy2 = new THREE.BoxGeometry(0.5, 0.05,5);
+    var cubs2 = new THREE.Mesh(geommy2,matty)
+    cubs2.rotation.y=Math.PI/2;
+    cubs2.translateX(2.25);
+    //cubs2.translateZ(-2.25);
+    sceneGraph.add(cubs2);
+
+    var cubs3 = cubs2.clone();
+    cubs3.translateX(-4.5);
+    sceneGraph.add(cubs3);
+
+    var cubs4 = cubs.clone();
+    cubs4.translateX(-4.5);
+    sceneGraph.add(cubs4);
+}
 
 
 function loadKnights(sceneGraph){
@@ -666,7 +768,6 @@ function computeFrame(time) {
 }
 
 // TO DO
-// textures
 // reflections
 // illumination and shading
-// background
+// fix cavalo preto desaparecer em saltos que nao o matam
