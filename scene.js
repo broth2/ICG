@@ -15,6 +15,7 @@ const sceneElements = {
 
 // vars init
 var delta = 0.1;
+var already_loaded = false;
 var step = 0;
 var dispX = 0.2, dispZ = 0.2;
 var done1,done2,done4,done5,done7,done8,done10,done11;
@@ -51,27 +52,29 @@ var controls = new function () {
             plane.name="plane";
             sceneElements.sceneGraph.add(plane);
 
-            
+            already_loaded=false;
             sceneElements.sceneGraph.remove(sceneElements.sceneGraph.getObjectByName("axes"));
             sceneElements.sceneGraph.remove(sceneElements.sceneGraph.getObjectByName("grid"));
         }else{
 
+            if (!already_loaded){
+                sceneElements.sceneGraph.background=null;
 
-            sceneElements.sceneGraph.background=null;
-
-            var axes = new THREE.AxesHelper(2.5);
-            axes.name="axes";
-            sceneElements.sceneGraph.add(axes);
-        
-            // the grid
-            const size = 8;
-            const divisions = 16;
-            const gridHelper = new THREE.GridHelper( size, divisions );
-            gridHelper.position.y=-0.01;
-            gridHelper.name="grid";
-            sceneElements.sceneGraph.add( gridHelper );
+                var axes = new THREE.AxesHelper(3.5);
+                axes.name="axes";
+                sceneElements.sceneGraph.add(axes);
             
-            sceneElements.sceneGraph.remove(sceneElements.sceneGraph.getObjectByName("plane"));
+                // the grid
+                const size = 8;
+                const divisions = 16;
+                const gridHelper = new THREE.GridHelper( size, divisions );
+                gridHelper.position.y=-0.01;
+                gridHelper.name="grid";
+                sceneElements.sceneGraph.add( gridHelper );
+                
+                sceneElements.sceneGraph.remove(sceneElements.sceneGraph.getObjectByName("plane"));
+                
+            }
         }
 
     }
@@ -142,30 +145,70 @@ function initEmptyScene(sceneElements) {
     sceneElements.sceneGraph.add(ambientLight);
 
     // ***************************** //
-    // Add spotlight (with shadows)
+    // Add light (with shadows)
     // ***************************** //
-    const spotLight = new THREE.SpotLight('rgb(255, 255, 255)', 1);
+    var spotLight = new THREE.SpotLight('rgb(255, 255, 255)', 1);
     var lights = new THREE.Group();
+    spotLight = new THREE.PointLight('rgb(246, 200, 9 )');
+    var spotLight2= new THREE.PointLight('rgb(246, 200, 9 )');
+    var spotLight3= new THREE.PointLight('rgb(246, 200, 9 )');
+    var spotLight4= new THREE.PointLight('rgb(246, 200, 9 )');
+    spotLight2.position.set(-4,4,-4);
     spotLight.position.set(4, 4, 4);
+    spotLight3.position.set(-4, 4, 4);
+    spotLight4.position.set(4, 4, -4);
+    lights.add(spotLight2)
     lights.add(spotLight);
+    lights.add(spotLight3);
+    lights.add(spotLight4);
 
     // Setup shadow properties for the spotlight
     spotLight.castShadow = true;
     spotLight.shadow.mapSize.width = 2048;
     spotLight.shadow.mapSize.height = 2048;
+    spotLight2.castShadow = true;
+    spotLight2.shadow.mapSize.width = 2048;
+    spotLight2.shadow.mapSize.height = 2048;
+    spotLight3.castShadow = true;
+    spotLight3.shadow.mapSize.width = 2048;
+    spotLight3.shadow.mapSize.height = 2048;
+    spotLight4.castShadow = true;
+    spotLight4.shadow.mapSize.width = 2048;
+    spotLight4.shadow.mapSize.height = 2048;
 
     // Give a name to the spot light
     spotLight.name = "light";
+    spotLight2.name = "light2";
+
+    spotLight3.name = "light3";
+
+    spotLight4.name = "light4";
 
     const geometry13 = new THREE.SphereGeometry( 0.1, 20, 20 );
     const material13 = new THREE.MeshBasicMaterial( { color: 'rgb(235, 161, 52)' } );
     const sphere = new THREE.Mesh( geometry13, material13 );
     sphere.position.set(4,4,4);
+
+    var sphere2 = sphere.clone();
+    var sphere3 = sphere.clone();
+    var sphere4 = sphere.clone();
+    sphere2.position.set(-4,4,-4)
+    sphere2.position.set(-4,4,-4)
+    sphere3.position.set(4,4,-4)
+    sphere4.position.set(-4,4,4)
     //sphere.position.y = (10 * Math.abs(Math.sin(1)));
     sphere.name = "sun";
+    sphere2.name ="sun2";
+    sphere3.name ="sun3";
+    sphere4.name ="sun4";
     lights.add( sphere );
+    lights.add(sphere2);
+    lights.add(sphere3);
+    lights.add(sphere4);
     lights.name="lights";
     sceneElements.sceneGraph.add(lights);
+
+    //later group light and sphere
 
 
     // *********************************** //
@@ -263,7 +306,8 @@ function loadBasic(sceneGraph) {
     // sceneGraph.add(plane);
 
     // the coordinate axes
-    var axes = new THREE.AxesHelper(2.5);
+    if (!already_loaded){
+    var axes = new THREE.AxesHelper(3.5);
     axes.name="axes";
     sceneGraph.add(axes);
 
@@ -274,8 +318,8 @@ function loadBasic(sceneGraph) {
     gridHelper.position.y=-0.01;
     gridHelper.name="grid";
     sceneGraph.add( gridHelper );
-
-    
+        already_loaded=true;
+    }
 
     var img = "./lib/dark_wood.png";
     var texture = new THREE.ImageUtils.loadTexture(img);
@@ -739,10 +783,13 @@ function computeFrame(time) {
 
     jmp_hght=(controls.jumpHeight);
     sceneElements.sceneGraph.getObjectByName("light").intensity=controls.intensity;
+    sceneElements.sceneGraph.getObjectByName("light2").intensity=controls.intensity;
+    sceneElements.sceneGraph.getObjectByName("light3").intensity=controls.intensity;
+    sceneElements.sceneGraph.getObjectByName("light4").intensity=controls.intensity;
 
     sceneElements.sceneGraph.getObjectByName("lights").rotation.y += controls.lightSpeed;
-    //console.log(sceneElements.sceneGraph.getObjectByName("sun").rotation.y);
-
+    //console.log(sceneElements.sceneGraph.getObjectByName("sun").position);
+    
     
     var secondBB = new THREE.Box3().setFromObject(sceneElements.whiteK);
     var thirdBB = new THREE.Box3().setFromObject(sceneElements.blackK);
